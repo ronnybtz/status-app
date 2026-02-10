@@ -1,142 +1,66 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Status</title>
+<script>
+  const PIN = "1234"; // ÄNDERN
 
-  <link rel="manifest" href="manifest.json" />
+  const statusText = document.getElementById("statusText");
+  const editBtn = document.getElementById("editBtn");
+  const editor = document.getElementById("editor");
+  const saveBtn = document.getElementById("saveBtn");
+  const statusSelect = document.getElementById("statusSelect");
+  const pinInput = document.getElementById("pinInput");
 
-  <style>
-    body {
-      font-family: system-ui, Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: linear-gradient(135deg, #eef2f7, #d9e4f5);
-      margin: 0;
+  const colors = {
+    "In Sondelfingen": "#16a34a",
+    "In Schwenningen": "#2563eb",
+    "In Immenhausen": "#7c3aed",
+    "Arbeiten": "#f59e0b",
+    "Unterwegs": "#ef4444"
+  };
+
+  function updateStatusUI(status) {
+    statusText.textContent = status;
+    statusText.style.background = colors[status] || "#333";
+  }
+
+  // Funktion, um Status von status.json zu laden
+  async function loadStatus() {
+    try {
+      const res = await fetch("status.json?" + new Date().getTime()); // Cache umgehen
+      const data = await res.json();
+      statusSelect.value = data.status;
+      updateStatusUI(data.status);
+    } catch (err) {
+      console.error("Fehler beim Laden des Status:", err);
+      statusSelect.value = "In Sondelfingen";
+      updateStatusUI("In Sondelfingen");
+    }
+  }
+
+  // Beim Laden der Seite
+  loadStatus();
+
+  // Alle 30 Sekunden Status automatisch neu laden
+  setInterval(loadStatus, 30000);
+
+  editBtn.onclick = () => {
+    editor.classList.toggle("hidden");
+  };
+
+  saveBtn.onclick = () => {
+    if (pinInput.value !== PIN) {
+      alert("Falscher PIN");
+      return;
     }
 
-    .card {
-      background: white;
-      padding: 30px;
-      border-radius: 22px;
-      box-shadow: 0 15px 40px rgba(0,0,0,0.12);
-      text-align: center;
-      width: 340px;
-    }
+    const newStatus = statusSelect.value;
 
-    h1 {
-      margin-top: 0;
-      font-size: 1.4rem;
-      color: #333;
-    }
+    alert("Um den Status für alle zu ändern, bitte status.json im Repo aktualisieren:\n\n" +
+          `Neuer Status: "${newStatus}"`);
 
-    .status {
-      font-size: 1.6rem;
-      margin: 20px 0;
-      font-weight: bold;
-      padding: 12px;
-      border-radius: 14px;
-      color: white;
-    }
+    editor.classList.add("hidden");
+    pinInput.value = "";
+  };
 
-    select, button, input {
-      padding: 12px;
-      border-radius: 12px;
-      border: 1px solid #ccc;
-      margin-top: 10px;
-      width: 100%;
-      font-size: 1rem;
-    }
-
-    button {
-      background: #111827;
-      color: white;
-      border: none;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      background: #000;
-    }
-
-    .hidden {
-      display: none;
-    }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>📍 Aktueller Status</h1>
-
-    <div class="status" id="statusText">In Sondelfingen</div>
-
-    <button id="editBtn">Status ändern</button>
-
-    <div id="editor" class="hidden">
-      <input id="pinInput" placeholder="PIN" type="password" />
-      <select id="statusSelect">
-        <option>In Sondelfingen</option>
-        <option>In Schwenningen</option>
-        <option>In Immenhausen</option>
-        <option>Arbeiten</option>
-        <option>Unterwegs</option>
-      </select>
-      <button id="saveBtn">Speichern</button>
-    </div>
-  </div>
-
-  <script>
-    const PIN = "1234"; // ÄNDERN
-
-    const statusText = document.getElementById("statusText");
-    const editBtn = document.getElementById("editBtn");
-    const editor = document.getElementById("editor");
-    const saveBtn = document.getElementById("saveBtn");
-    const statusSelect = document.getElementById("statusSelect");
-    const pinInput = document.getElementById("pinInput");
-
-    const colors = {
-      "In Sondelfingen": "#16a34a",
-      "In Schwenningen": "#2563eb",
-      "In Immenhausen": "#7c3aed",
-      "Arbeiten": "#f59e0b",
-      "Unterwegs": "#ef4444"
-    };
-
-    function updateStatusUI(status) {
-      statusText.textContent = status;
-      statusText.style.background = colors[status] || "#333";
-    }
-
-    const savedStatus = localStorage.getItem("status") || "In Sondelfingen";
-    statusSelect.value = savedStatus;
-    updateStatusUI(savedStatus);
-
-    editBtn.onclick = () => {
-      editor.classList.toggle("hidden");
-    };
-
-    saveBtn.onclick = () => {
-      if (pinInput.value !== PIN) {
-        alert("Falscher PIN");
-        return;
-      }
-
-      const newStatus = statusSelect.value;
-      localStorage.setItem("status", newStatus);
-      updateStatusUI(newStatus);
-      editor.classList.add("hidden");
-      pinInput.value = "";
-    };
-
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("sw.js");
-    }
-  </script>
-</body>
-</html>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+</script>
