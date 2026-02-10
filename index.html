@@ -1,66 +1,85 @@
-<script>
-  const PIN = "1234"; // ÄNDERN
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Status</title>
+  
+  <!-- Optional: PWA manifest -->
+  <link rel="manifest" href="manifest.json" />
 
-  const statusText = document.getElementById("statusText");
-  const editBtn = document.getElementById("editBtn");
-  const editor = document.getElementById("editor");
-  const saveBtn = document.getElementById("saveBtn");
-  const statusSelect = document.getElementById("statusSelect");
-  const pinInput = document.getElementById("pinInput");
-
-  const colors = {
-    "In Sondelfingen": "#16a34a",
-    "In Schwenningen": "#2563eb",
-    "In Immenhausen": "#7c3aed",
-    "Arbeiten": "#f59e0b",
-    "Unterwegs": "#ef4444"
-  };
-
-  function updateStatusUI(status) {
-    statusText.textContent = status;
-    statusText.style.background = colors[status] || "#333";
-  }
-
-  // Funktion, um Status von status.json zu laden
-  async function loadStatus() {
-    try {
-      const res = await fetch("status.json?" + new Date().getTime()); // Cache umgehen
-      const data = await res.json();
-      statusSelect.value = data.status;
-      updateStatusUI(data.status);
-    } catch (err) {
-      console.error("Fehler beim Laden des Status:", err);
-      statusSelect.value = "In Sondelfingen";
-      updateStatusUI("In Sondelfingen");
-    }
-  }
-
-  // Beim Laden der Seite
-  loadStatus();
-
-  // Alle 30 Sekunden Status automatisch neu laden
-  setInterval(loadStatus, 10000);
-
-  editBtn.onclick = () => {
-    editor.classList.toggle("hidden");
-  };
-
-  saveBtn.onclick = () => {
-    if (pinInput.value !== PIN) {
-      alert("Falscher PIN");
-      return;
+  <style>
+    body {
+      font-family: system-ui, Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #eef2f7, #d9e4f5);
+      margin: 0;
     }
 
-    const newStatus = statusSelect.value;
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 22px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+      text-align: center;
+      width: 340px;
+    }
 
-    alert("Um den Status für alle zu ändern, bitte status.json im Repo aktualisieren:\n\n" +
-          `Neuer Status: "${newStatus}"`);
+    h1 {
+      margin-top: 0;
+      font-size: 1.4rem;
+      color: #333;
+    }
 
-    editor.classList.add("hidden");
-    pinInput.value = "";
-  };
+    .status {
+      font-size: 1.6rem;
+      margin: 20px 0;
+      font-weight: bold;
+      padding: 12px;
+      border-radius: 14px;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>📍 Aktueller Status</h1>
+    <div class="status" id="statusText">Lade...</div>
+  </div>
 
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js");
-  }
-</script>
+  <script>
+    const statusText = document.getElementById("statusText");
+
+    const colors = {
+      "In Sondelfingen": "#16a34a",
+      "In Schwenningen": "#2563eb",
+      "In Immenhausen": "#7c3aed",
+      "Arbeiten": "#f59e0b",
+      "Unterwegs": "#ef4444"
+    };
+
+    // Funktion: Status von JSON laden
+    async function loadStatus() {
+      try {
+        const res = await fetch("status.json?" + new Date().getTime()); // Cache umgehen
+        const data = await res.json();
+        statusText.textContent = data.status;
+        statusText.style.background = colors[data.status] || "#333";
+      } catch (err) {
+        console.error("Fehler beim Laden des Status:", err);
+        statusText.textContent = "In Sondelfingen";
+        statusText.style.background = colors["In Sondelfingen"];
+      }
+    }
+
+    // Beim Laden
+    loadStatus();
+
+    // Automatisches Update alle 30 Sekunden
+    setInterval(loadStatus, 30000);
+  </script>
+</body>
+</html>
